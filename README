@@ -1,0 +1,33 @@
+=django-pgsql-interval-field=
+
+==what is it?==
+Django + PostgreSQL INTERVAL field is an implementation of INTERVAL field type from PostgreSQL (which maps to Python's datetime.timedelta type).
+
+Some support for South migrations is also included.
+
+==installation==
+{{{
+$ pip install svn+http://django-pgsql-interval-field.googlecode.com/svn/trunk/
+}}}
+
+==usage==
+Simple. Only PostgreSQL is supported. 
+
+===settings.py===
+Add `interval` to `INSTALLED_APPS`
+
+===models.py===
+{{{
+from datetime import timedelta
+
+from django.db import models
+
+from interval.fields import IntervalField
+
+class MyModel(models.Model):
+    i = IntervalField()
+
+...
+
+MyModel(i = timedelta(days = 5))
+}}}
