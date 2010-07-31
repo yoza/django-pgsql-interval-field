@@ -1,8 +1,12 @@
 # -*- encoding: utf-8 -*-
 
 from django.db import models
+from django.conf import settings
 
 from datetime import time, timedelta
+
+day_seconds = 24 * 60 * 60
+miliseconds = 1000000
 
 
 def timedelta_topgsqlstring(value):
@@ -22,16 +26,29 @@ def timedelta_topgsqlstring(value):
     return buf
 
 
+def timedelta_tobigint(value):
+    return (value.days * day_seconds + value.seconds + value.microseconds) * miliseconds
+
+
 
 class IntervalField(models.Field):
-    """PostgreSQL's INTERVAL type; maps to Python datetime.timedelta
+    """This is a field, which maps to Python's datetime.timedelta.
+
+    For PostgreSQL, its type is INTERVAL - a native interval type.
+    - http://www.postgresql.org/docs/8.4/static/datatype-datetime.html
+
+    For other databases, its type is BIGINT and timedelta value is stored
+    as number of seconds * 1000000 . 
     """
 
     __metaclass__ = models.SubfieldBase
 
     def db_type(self):
-        return "INTERVAL"
+        if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
+            return 'INTERVAL'
 
+        return 'BIGINT'
+        
 
     def to_python(self, value):
 
@@ -39,14 +56,21 @@ class IntervalField(models.Field):
             return None
 
         if isinstance(value, timedelta):
+            # PostgreSQL
             return value
 
-        return timedelta(seconds = float(value)) # string form - for json
+        # other database backends:
+        return timedelta(seconds = float(value) / miliseconds ) # string form - for json
 
 
     def get_db_prep_value(self, value):
+
         if value is None or value is '': return None
-        return timedelta_topgsqlstring(value)
+
+        if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
+            return timedelta_topgsqlstring(value)
+
+        return timedelta_tobigint(value)
 
 
 
