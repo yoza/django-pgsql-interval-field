@@ -6,7 +6,7 @@ from django.conf import settings
 from datetime import time, timedelta
 
 day_seconds = 24 * 60 * 60
-miliseconds = 1000000
+microseconds = 1000000
 
 
 def timedelta_topgsqlstring(value):
@@ -27,7 +27,7 @@ def timedelta_topgsqlstring(value):
 
 
 def timedelta_tobigint(value):
-    return (value.days * day_seconds + value.seconds + value.microseconds) * miliseconds
+    return (value.days * day_seconds + value.seconds + value.microseconds) * microseconds
 
 
 
@@ -59,8 +59,54 @@ class IntervalField(models.Field):
             # PostgreSQL
             return value
 
+        # string in form like "HH:MM:SS.ms" (can be used in fixture files)
+        if (isinstance(value, str) or isinstance(value, unicode)) and value.find(":") >= 0:
+            try:
+                h, m, s = value.split(":")
+            except ValueError, e:
+                raise ValueError, "please use HH:MM:SS[.ms] format instead of %r" % value
+
+            try:
+                h = int(h)
+            except ValueError, e:
+                raise ValueError, "hours are not an integer in %r" % value
+
+            try:
+                m = int(m)
+
+                if m > 59 or m < 0: 
+                    raise ValueError
+
+            except ValueError, e:
+                raise ValueError, "minutes are not a positive integer or exceed 59 in %r" % value
+
+            if s.find(".") >= 0:
+                s, ms = s.split(".")
+            else:
+                ms = 0
+
+            try:
+                s = int(s)
+
+                if s > 59 or s < 0:
+                    raise ValueError
+
+            except ValueError, e:
+                raise ValueError, "seconds are not a positive integer or exceed 59 in %r" % value
+
+            try:
+                ms = int(ms) * (microseconds/10)
+                
+                if ms > microseconds or ms < 0:
+                    raise ValueError
+
+            except ValueError, e:
+                raise ValueError, "microseconds are not a positive integer or exceed %s in %r" % (microseconds, value)
+
+            return timedelta(hours = h, minutes = m, seconds = s, microseconds = ms)
+
         # other database backends:
-        return timedelta(seconds = float(value) / miliseconds ) # string form - for json
+        return timedelta(seconds = float(value) / microseconds ) # string form - for json
 
 
     def get_db_prep_value(self, value):
