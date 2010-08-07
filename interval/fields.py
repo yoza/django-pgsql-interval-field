@@ -61,8 +61,11 @@ class IntervalField(models.Field):
         # string in form like "HH:MM:SS.ms" (can be used in fixture files or admin)
         if (isinstance(value, str) or isinstance(value, unicode)) and value.find(":") >= 0:
             days = 0
-            if value.find("days,") >= 0:
-                days, value = value.split("days,")
+            if value.find("days,") >= 0 or value.find("day,") >= 0:
+                if value.find("days,")>=0:
+                    days, value = value.split("days,")
+                else:
+                    days, value = value.split("day,")
                 value = value.strip()
                 try:
                     days = int(days.strip())
