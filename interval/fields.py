@@ -46,7 +46,6 @@ class IntervalField(models.Field):
     def db_type(self):
         if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
             return 'INTERVAL'
-
         return 'BIGINT'
         
 
@@ -56,20 +55,33 @@ class IntervalField(models.Field):
             return None
 
         if isinstance(value, timedelta):
-            # PostgreSQL
+            # psycopg2 will return a timedelta() for INTERVAL type column in db:
             return value
 
-        # string in form like "HH:MM:SS.ms" (can be used in fixture files)
+        # string in form like "HH:MM:SS.ms" (can be used in fixture files or admin)
         if (isinstance(value, str) or isinstance(value, unicode)) and value.find(":") >= 0:
+            days = 0
+            if value.find("days,") >= 0:
+                days, value = value.split("days,")
+                value = value.strip()
+                try:
+                    days = int(days.strip())
+                except ValueError, e:
+                    raise ValueError, "please use [[DD]D days, ]HH:MM:SS[.ms] format instead of %r" % value
+                if days < 0:
+                    raise ValueError, "days are not a positive integer in %r" % value
+
             try:
                 h, m, s = value.split(":")
             except ValueError, e:
-                raise ValueError, "please use HH:MM:SS[.ms] format instead of %r" % value
+                raise ValueError, "please use [[DD]D days, ]HH:MM:SS[.ms] format instead of %r" % value
 
             try:
                 h = int(h)
+                if h < 0:
+                    raise ValueError
             except ValueError, e:
-                raise ValueError, "hours are not an integer in %r" % value
+                raise ValueError, "hours are not a positive integer in %r" % value
 
             try:
                 m = int(m)
@@ -83,7 +95,7 @@ class IntervalField(models.Field):
             if s.find(".") >= 0:
                 s, ms = s.split(".")
             else:
-                ms = 0
+                ms = "0"
 
             try:
                 s = int(s)
@@ -95,15 +107,16 @@ class IntervalField(models.Field):
                 raise ValueError, "seconds are not a positive integer or exceed 59 in %r" % value
 
             try:
-                ms = int(ms) * (microseconds/10)
+                l = len(ms)
+                ms = int(ms) * (microseconds/(10 ** l))
                 
                 if ms > microseconds or ms < 0:
                     raise ValueError
 
             except ValueError, e:
-                raise ValueError, "microseconds are not a positive integer or exceed %s in %r" % (microseconds, value)
+                raise ValueError, "microseconds are not a positive integer or exceed %s in %r (ms=%r)" % (microseconds, value, ms)
 
-            return timedelta(hours = h, minutes = m, seconds = s, microseconds = ms)
+            return timedelta(days = days, hours = h, minutes = m, seconds = s, microseconds = ms)
 
         # other database backends:
         return timedelta(seconds = float(value) / microseconds ) # string form - for json
