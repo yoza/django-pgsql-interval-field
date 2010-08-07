@@ -51,7 +51,7 @@ class IntervalField(models.Field):
 
     def to_python(self, value):
 
-        if value is None or value is '':
+        if value is None or value is '' or value is u'':
             return None
 
         if isinstance(value, timedelta):
