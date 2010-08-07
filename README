@@ -5,13 +5,23 @@ Django + PostgreSQL INTERVAL field is an implementation of INTERVAL field type f
 
 Some support for South migrations is also included.
 
+Why having an INTERVAL date type in the database is important? Well, first of all, you get datetime.timedelta objects from the database backend
+and you don't have to do anything special in order to have that. Second thing is, if you do anything non-trival at the database side, like custom
+PL/PgSQL procedures, using an INTEGER type to store time interval values involves a lot of conversion which you can easily avoid. 
+
+At this moment, only PostgreSQL is supported and tested, as I am working on some project, that involves this small module. Some support for 
+other database backends is included anyway, so if you are willing to test this module and perhaps send some patches back to me, you're welcome.
+
 ==installation==
+Please check "Downloads" for releases.
+
+If you want to use the version from the SVN, simply use PIP: 
 {{{
 $ pip install svn+http://django-pgsql-interval-field.googlecode.com/svn/trunk/
 }}}
 
 ==usage==
-Simple. Only PostgreSQL is supported. 
+Very simple. 
 
 ===settings.py===
 Add `interval` to `INSTALLED_APPS`
