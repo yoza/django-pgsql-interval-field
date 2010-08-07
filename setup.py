@@ -4,7 +4,7 @@ import os
 
 setupdict = dict(
     name = 'django-pgsql-interval-field',
-    version = '0.1',
+    version = '0.2',
     author = u'Michał Pasternak - FHU Kagami',
     author_email = 'michal.dtz@gmail.com',
     url = 'http://fhu-kagami.pl/',
