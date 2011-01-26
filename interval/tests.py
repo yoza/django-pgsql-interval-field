@@ -77,3 +77,14 @@ class TestIntervalField(TestCase):
         settings.DATABASE_ENGINE = orig_dbe
 
 
+
+class TestIntervalFormField(TestCase):
+    def test_iff(self):
+        
+        a = IntervalField('wtf', required = True)
+        self.assertRaises(ValidationError, a.clean, None)
+        a.clean(timedelta(0))
+        
+        a = IntervalField('wtf', required = False)
+        a.clean(None)
+        
