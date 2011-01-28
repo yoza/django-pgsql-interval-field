@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from testutil import TestCase
+from django.test import TestCase
 
 from datetime import timedelta
 
