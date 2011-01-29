@@ -125,11 +125,11 @@ class IntervalField(models.Field):
         return timedelta(seconds = float(value) / microseconds ) # string form - for json
 
 
-    def get_db_prep_value(self, value):
+    def get_db_prep_value(self, value, connection):
 
         if value is None or value is '': return None
 
-        if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
+        if connection.settings_dict['ENGINE'].find('postgresql')>=0:
             return timedelta_topgsqlstring(value)
 
         return timedelta_tobigint(value)
