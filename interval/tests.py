@@ -3,6 +3,7 @@
 from django.test import TestCase
 from datetime import timedelta
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 class TestIntervalField(TestCase):
     def test_functions(self):
@@ -54,7 +55,7 @@ class TestIntervalField(TestCase):
 
             self.assertEquals(a.get_db_prep_value(None), None)
 
-            if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
+            if settings.DATABASES['default']['ENGINE'].find('postgresql')>=0:
                 self.assertEquals(a.db_type(), 'INTERVAL')
                 self.assertEquals(a.get_db_prep_value(timedelta(seconds = 10)), ' 10 SECONDS ')
             else:
@@ -63,28 +64,31 @@ class TestIntervalField(TestCase):
 
 
         
-        orig_dbe = settings.DATABASE_ENGINE
+        orig_dbe = settings.DATABASES['default']['ENGINE']
 
-        settings.DATABASE_ENGINE = 'postgresql_psycopg2'
+        settings.DATABASES['default']['ENGINE'] = 'postgresql_psycopg2'
         do_some_tests()
 
-        settings.DATABASE_ENGINE = 'something_else_than_pgsql'
+        settings.DATABASES['default']['ENGINE'] = 'something_else_than_pgsql'
         do_some_tests()
 
         # Leave everything as it was
-        settings.DATABASE_ENGINE = orig_dbe
+        settings.DATABASES['default']['ENGINE'] = orig_dbe
 
 
 
 class TestIntervalFormField(TestCase):
-    def test_iff(self):
+    def test_interval_form_field(self):
         
         from interval.forms import IntervalField
-        
+
+        # Raise error on empty required field
         a = IntervalField('wtf', required = True)
         self.assertRaises(ValidationError, a.clean, None)
-        a.clean(timedelta(0))
         
+        a.clean(timedelta(0))
+
+        # Not raise on not required
         a = IntervalField('wtf', required = False)
         a.clean(None)
         

@@ -48,20 +48,19 @@ class IntervalWidget(TextInput):
             para['dojoType'] = 'dojoType="dijit.form.NumberTextBox"'
 
         if "D" in self.format:
-            ret.append(u'''<input type="text" value="%(days)s" name="%(name)s_days" 
-            	%(style)s %(dojoType)s/> %(days_label)s ''')
+            ret.append(u'''<input type="text" value="%(days)s" name="%(name)s_days" %(style)s %(dojoType)s/> %(days_label)s ''')
+            
 
         if "H" in self.format:
-            ret.append(u'<input type="text" value="%(hours)s" name="%(name)s_hours" %(style)s 
-            	%(dojoType) /> %(hours_label)s''')
+            ret.append(u'<input type="text" value="%(hours)s" name="%(name)s_hours" %(style)s %(dojoType) /> %(hours_label)s')
+
 
         if "M" in self.format:
-            ret.append(u'<input type="text" value="%(minutes)s" name="%(name)s_minutes"
-            	%(style)s %(dojoType) /> %(minutes_label)s')
+            ret.append(u'<input type="text" value="%(minutes)s" name="%(name)s_minutes" %(style)s %(dojoType) /> %(minutes_label)s')
 
         if "S" in self.format:
-            ret.append(u'<input type="text" value="%(seconds)s" name="%(name)s_seconds" 
-            	%(style)s %(dojoType) /> %(seconds_label)s')
+            ret.append(u'<input type="text" value="%(seconds)s" name="%(name)s_seconds" %(style)s %(dojoType) /> %(seconds_label)s')
+            
 
         return mark_safe("  ".join(ret) % para)
 
