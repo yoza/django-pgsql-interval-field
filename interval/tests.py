@@ -1,18 +1,16 @@
 # -*- encoding: utf-8 -*-
 
 from django.test import TestCase
-
 from datetime import timedelta
-
-from interval.fields import IntervalField, microseconds
-
 from django.conf import settings
 
 class TestIntervalField(TestCase):
     def test_functions(self):
-        """Test functions of IntervalField without using any 
+        """Test functions of IntervalField without using any
         specific database backend."""
         
+        from interval.fields import IntervalField, microseconds
+
         def do_some_tests():
             """We don't actually touch the DB in those tests."""
 
@@ -80,6 +78,8 @@ class TestIntervalField(TestCase):
 
 class TestIntervalFormField(TestCase):
     def test_iff(self):
+        
+        from interval.forms import IntervalField
         
         a = IntervalField('wtf', required = True)
         self.assertRaises(ValidationError, a.clean, None)
