@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name = 'django-pgsql-interval-field',
-	version = '0.7',
+	version = '0.8',
         author = u'Michał Pasternak - FHU Kagami',
         author_email = 'michal.dtz@gmail.com',
         url = 'http://fhu-kagami.pl/',
