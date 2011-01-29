@@ -125,7 +125,7 @@ class IntervalField(models.Field):
         return timedelta(seconds = float(value) / microseconds ) # string form - for json
 
 
-    def get_db_prep_value(self, value, connection):
+    def get_db_prep_value(self, value, connection, prepared = False):
 
         if value is None or value is '': return None
 
