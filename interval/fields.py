@@ -43,8 +43,8 @@ class IntervalField(models.Field):
 
     __metaclass__ = models.SubfieldBase
 
-    def db_type(self):
-        if settings.DATABASE_ENGINE == 'postgresql_psycopg2':
+    def db_type(self, connection):
+        if connection.settings_dict['ENGINE'].find('postgresql')>=0:
             return 'INTERVAL'
         return 'BIGINT'
         
