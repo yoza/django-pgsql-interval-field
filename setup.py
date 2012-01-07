@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
     name='django-pgsql-interval-field',
@@ -10,6 +11,7 @@ setup(
     url='http://code.google.com/p/django-pgsql-interval-field/',
     license='MIT',
     description='Support for PostgreSQL INTERVAL for Django',
-    packages=['interval', 'interval.static'],
+    packages=find_packages(exclude='test_project'),
+    package_data={'':['*.css']},
     install_requires=['django'],
     zip_safe=False)
