@@ -1,18 +1,18 @@
 =django-pgsql-interval-field=
 
-==what is it?== 
-Django + PostgreSQL INTERVAL field is an implementation of INTERVAL field type from 
+==what is it?==
+Django + PostgreSQL INTERVAL field is an implementation of INTERVAL field type from
 PostgreSQL.
 
 It also supports other databases like SQLite or MySQL by using BIGINT
 instead of INTERVAL.
 
 ==features==
-* tested
-* internationalized
-* supports PostgreSQL and SQLite (perhaps MySQL too!) 
-* works with Dojango
-* example application included
+ * tested
+ * internationalized
+ * supports PostgreSQL and SQLite (perhaps MySQL too!)
+ * works with Dojango
+ * example application included
 
 ==installation==
 Please check "Downloads" for releases, or:
@@ -21,7 +21,7 @@ Please check "Downloads" for releases, or:
 $ pip install django-pgsql-interval-field
 }}}
 
-If you want to use the version from the SVN, simply use PIP: 
+If you want to use the version from the SVN, simply use PIP:
 {{{
 $ pip install svn+http://django-pgsql-interval-field.googlecode.com/svn/trunk/
 }}}
@@ -33,5 +33,5 @@ $ svn co svn+http://django-pgsql-interval-field.googlecode.com/svn/trunk/
 $ cd trunk/test_project
 $ export PYTHONPATH=..
 $ python manage.py syncdb
-$ python manage.py collectstatic
+$ python manage.py runserver
 }}}
