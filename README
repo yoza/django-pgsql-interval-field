@@ -1,19 +1,25 @@
 =django-pgsql-interval-field=
 
-==what is it?==
-Django + PostgreSQL INTERVAL field is an implementation of INTERVAL field type from PostgreSQL (which maps to Python's datetime.timedelta type).
+==what is it?== 
+Django + PostgreSQL INTERVAL field is an implementation of INTERVAL field type from 
+PostgreSQL.
 
-Some support for South migrations is also included.
+It also supports other databases like SQLite or MySQL by using BIGINT
+instead of INTERVAL.
 
-Why having an INTERVAL date type in the database is important? Well, first of all, you get datetime.timedelta objects from the database backend
-and you don't have to do anything special in order to have that. Second thing is, if you do anything non-trival at the database side, like custom
-PL/PgSQL procedures, using an INTEGER type to store time interval values involves a lot of conversion which you can easily avoid. 
-
-At this moment, only PostgreSQL is supported and tested, as I am working on some project, that involves this small module. Some support for 
-other database backends is included anyway, so if you are willing to test this module and perhaps send some patches back to me, you're welcome.
+==features==
+* tested
+* internationalized
+* supports PostgreSQL and SQLite (perhaps MySQL too!) 
+* works with Dojango
+* example application included
 
 ==installation==
-Please check "Downloads" for releases.
+Please check "Downloads" for releases, or:
+
+{{{
+$ pip install django-pgsql-interval-field
+}}}
 
 If you want to use the version from the SVN, simply use PIP: 
 {{{
@@ -21,23 +27,11 @@ $ pip install svn+http://django-pgsql-interval-field.googlecode.com/svn/trunk/
 }}}
 
 ==usage==
-Very simple. 
-
-===settings.py===
-Add `interval` to `INSTALLED_APPS`
-
-===models.py===
+Please see the included test_project folder.
 {{{
-from datetime import timedelta
-
-from django.db import models
-
-from interval.fields import IntervalField
-
-class MyModel(models.Model):
-    i = IntervalField()
-
-...
-
-MyModel(i = timedelta(days = 5))
+$ svn co svn+http://django-pgsql-interval-field.googlecode.com/svn/trunk/
+$ cd trunk/test_project
+$ export PYTHONPATH=..
+$ python manage.py syncdb
+$ python manage.py collectstatic
 }}}

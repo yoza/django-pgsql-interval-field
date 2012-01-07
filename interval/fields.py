@@ -1,34 +1,55 @@
 # -*- encoding: utf-8 -*-
 
 from django.db import models
-from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
-from datetime import time, timedelta
+from datetime import timedelta
+
+from interval.forms import IntervalFormField
 
 day_seconds = 24 * 60 * 60
 microseconds = 1000000
 
 
+def formatError(value):
+    raise ValueError(
+        "please use [[DD]D days,]HH:MM:SS[.ms] instead of %r" % value)
+
+
 def timedelta_topgsqlstring(value):
-    buf = ''
-    if value.microseconds:
-        buf += ' %i MICROSECONDS ' % value.microseconds
-
-    if value.seconds:
-        buf += ' %i SECONDS ' % value.seconds
-
-    if value.days:
-        buf += ' %i DAYS ' % value.days
-
+    buf = []
+    for attr in ['days', 'seconds', 'microseconds']:
+        v = getattr(value, attr)
+        if v:
+            buf.append('%i %s' % (v, attr.upper()))
     if not buf:
-        buf = '0'
-
-    return buf
+        return '0'
+    return " ".join(buf)
 
 
 def timedelta_tobigint(value):
-    return (value.days * day_seconds + value.seconds + value.microseconds) * microseconds
+    return (
+        value.days * day_seconds * microseconds
+        + value.seconds * microseconds
+        + value.microseconds
+        )
 
+
+def range_check(value, name, min=None, max=None):
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        raise ValueError("%s is not an integer" % value)
+
+    if min is not None:
+        if value < min:
+            raise ValueError("%s is less than %s" % (value, min))
+
+    if max is not None:
+        if value > max:
+            raise ValueError("%s is more than %s" % (value, max))
+
+    return value
 
 
 class IntervalField(models.Field):
@@ -38,102 +59,102 @@ class IntervalField(models.Field):
     - http://www.postgresql.org/docs/8.4/static/datatype-datetime.html
 
     For other databases, its type is BIGINT and timedelta value is stored
-    as number of seconds * 1000000 . 
+    as number of seconds * 1000000 .
     """
 
     __metaclass__ = models.SubfieldBase
 
+    description = _("interval")
+
+    def __init__(
+        self, verbose_name=None, min_value=None, max_value=None, format=None,
+        *args, **kw):
+
+        models.Field.__init__(
+            self, verbose_name=verbose_name, *args, **kw)
+
+        self.min_value = min_value
+        self.max_value = max_value
+        self.format = format
+
+        if self.min_value is not None and self.max_value is not None:
+            if self.min_value >= self.max_value:
+                raise ValueError('min_value >= max_value')
+
     def db_type(self, connection):
-        if connection.settings_dict['ENGINE'].find('postgresql')>=0:
+        if connection.settings_dict['ENGINE'].find('postgresql') >= 0:
             return 'INTERVAL'
         return 'BIGINT'
-        
 
     def to_python(self, value):
+        if isinstance(value, timedelta):
+            # psycopg2 will return a timedelta() for INTERVAL type column
+            # in database
+            return value
 
         if value is None or value is '' or value is u'':
             return None
 
-        if isinstance(value, timedelta):
-            # psycopg2 will return a timedelta() for INTERVAL type column in db:
-            return value
-
-        # string in form like "HH:MM:SS.ms" (can be used in fixture files or admin)
-        if (isinstance(value, str) or isinstance(value, unicode)) and value.find(":") >= 0:
+        # string forms: in form like "X days, HH:MM:SS.ms" (can be used in
+        # fixture files)
+        if isinstance(value, basestring) and value.find(":") >= 0:
             days = 0
+
             if value.find("days,") >= 0 or value.find("day,") >= 0:
-                if value.find("days,")>=0:
+                if value.find("days,") >= 0:
                     days, value = value.split("days,")
                 else:
                     days, value = value.split("day,")
                 value = value.strip()
                 try:
                     days = int(days.strip())
-                except ValueError, e:
-                    raise ValueError, "please use [[DD]D days, ]HH:MM:SS[.ms] format instead of %r" % value
-                if days < 0:
-                    raise ValueError, "days are not a positive integer in %r" % value
+                except ValueError:
+                    formatError(value)
+
+                days = range_check(days, "days", 0)
 
             try:
                 h, m, s = value.split(":")
-            except ValueError, e:
-                raise ValueError, "please use [[DD]D days, ]HH:MM:SS[.ms] format instead of %r" % value
+            except ValueError:
+                formatError(value)
 
-            try:
-                h = int(h)
-                if h < 0:
-                    raise ValueError
-            except ValueError, e:
-                raise ValueError, "hours are not a positive integer in %r" % value
-
-            try:
-                m = int(m)
-
-                if m > 59 or m < 0: 
-                    raise ValueError
-
-            except ValueError, e:
-                raise ValueError, "minutes are not a positive integer or exceed 59 in %r" % value
+            h = range_check(h, "hours", 0)
+            m = range_check(m, "minutes", 0, 59)
 
             if s.find(".") >= 0:
                 s, ms = s.split(".")
             else:
                 ms = "0"
 
-            try:
-                s = int(s)
+            s = range_check(s, "seconds", 0, 59)
 
-                if s > 59 or s < 0:
-                    raise ValueError
+            l = len(ms)
+            ms = range_check(ms, "microseconds", 0, microseconds)
+            ms = ms * (microseconds / (10 ** l))
 
-            except ValueError, e:
-                raise ValueError, "seconds are not a positive integer or exceed 59 in %r" % value
-
-            try:
-                l = len(ms)
-                ms = int(ms) * (microseconds/(10 ** l))
-                
-                if ms > microseconds or ms < 0:
-                    raise ValueError
-
-            except ValueError, e:
-                raise ValueError, "microseconds are not a positive integer or exceed %s in %r (ms=%r)" % (microseconds, value, ms)
-
-            return timedelta(days = days, hours = h, minutes = m, seconds = s, microseconds = ms)
+            return timedelta(
+                days=days, hours=h, minutes=m,
+                seconds=s, microseconds=ms)
 
         # other database backends:
-        return timedelta(seconds = float(value) / microseconds ) # string form - for json
+        return timedelta(seconds=float(value) / microseconds)
 
+    def get_db_prep_value(self, value, connection, prepared=False):
+        if value is None or value is '':
+            return None
 
-    def get_db_prep_value(self, value, connection, prepared = False):
-
-        if value is None or value is '': return None
-
-        if connection.settings_dict['ENGINE'].find('postgresql')>=0:
+        if connection.settings_dict['ENGINE'].find('postgresql') >= 0:
             return timedelta_topgsqlstring(value)
 
         return timedelta_tobigint(value)
 
+    def formfield(self, form_class=IntervalFormField, **kwargs):
+        defaults = {'min_value': self.min_value,
+                    'max_value': self.max_value,
+                    'format': self.format or 'DHMS',
+                    'required': not self.blank}
+        defaults.update(kwargs)
+        return form_class(**defaults)
 
 
 try:
@@ -141,4 +162,3 @@ try:
     add_introspection_rules([], ["^interval\.fields\.IntervalField"])
 except ImportError:
     pass
-

@@ -8,6 +8,6 @@ setup(name = 'django-pgsql-interval-field',
         author_email = 'michal.dtz@gmail.com',
         url = 'http://fhu-kagami.pl/',
         license = 'MIT',
-        packages = ['interval'],
+        packages = ['interval', 'interval.static'],
         install_requires = ['django'],
         zip_safe = True)
