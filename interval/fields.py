@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from django.db import models
+from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy as _
 
 from datetime import timedelta
@@ -152,7 +153,9 @@ class IntervalField(models.Field):
         defaults = {'min_value': self.min_value,
                     'max_value': self.max_value,
                     'format': self.format or 'DHMS',
-                    'required': not self.blank}
+                    'required': not self.blank,
+                    'label': capfirst(self.verbose_name),
+                    'help_text': self.help_text}
         defaults.update(kwargs)
         return form_class(**defaults)
 

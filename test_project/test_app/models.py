@@ -8,6 +8,7 @@ from datetime import timedelta
 class TestModel(models.Model):
 
     not_required_interval = IntervalField(
+        'I am not required',
         null=True, blank=True,
         format='DH'
     )
