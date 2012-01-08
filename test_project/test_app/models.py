@@ -14,7 +14,8 @@ class TestModel(models.Model):
     )
 
     required_interval = IntervalField(
-        format='H'
+        format='H',
+        default=timedelta(hours=3)
     )
 
     required_interval_with_limits = IntervalField(
