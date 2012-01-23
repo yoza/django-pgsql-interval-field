@@ -12,6 +12,6 @@ setup(
     license='MIT',
     description='Support for PostgreSQL INTERVAL for Django',
     packages=find_packages(exclude='test_project'),
-    package_data={'interval':['interval/static/interval.css']},
+    include_package_data=True,
     install_requires=['django'],
     zip_safe=False)
