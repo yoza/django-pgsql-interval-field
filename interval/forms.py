@@ -128,6 +128,7 @@ class IntervalWidget(TextInput):
 class IntervalFormField(Field):
 
     widget = IntervalWidget
+    dojo_type = 'dijit.form.NumberTextBox'
 
     def __init__(
         self, format='DHMSX', min_value=None, max_value=None, *args, **kw):
@@ -185,7 +186,3 @@ class IntervalFormField(Field):
                 raise ValidationError(self.default_error_messages['required'])
 
         return Field.clean(self, cleaned_value)
-
-
-class IntervalDojoFormField(IntervalFormField):
-    dojo_type = 'dijit.form.NumberTextBox'
