@@ -145,7 +145,10 @@ class IntervalField(models.Field):
             return None
 
         if connection.settings_dict['ENGINE'].find('postgresql') >= 0:
-            return timedelta_topgsqlstring(value)
+			if isinstance(value, basestring):
+				# Can happen, when using south migrations
+				return value
+			return timedelta_topgsqlstring(value)
 
         return timedelta_tobigint(value)
 
